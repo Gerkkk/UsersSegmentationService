@@ -46,6 +46,16 @@ func MustLoadConfig() *Config {
 		panic("Error reading configs: " + err.Error())
 	}
 
+	for i := range cfg.Db.Shards {
+		DSN := os.Getenv(cfg.Db.Shards[i].DSNEnv)
+
+		if DSN == "" {
+			panic("env variable " + cfg.Db.Shards[i].DSNEnv + " is not set")
+		}
+
+		cfg.Db.Shards[i].DSN = DSN
+	}
+
 	return &cfg
 }
 

@@ -64,6 +64,7 @@ message GetSegmentInfoResponse {
 
 message DistributeSegmentRequest {
   string id = 1;
+  string users_percentage = 2;
 }
 
 message DistributeSegmentResponse {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
 	"log/slog"
 	"main/internal/app"
 	"main/internal/config"
@@ -16,12 +17,14 @@ const (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic("failed to load .env file: " + err.Error())
+	}
+
 	cfg := config.MustLoadConfig()
 
 	log := setupLogger(cfg.Env)
-
-	log.Debug("KEK")
-	log.Info("LOL")
 
 	application := app.NewApp(log, cfg.Grpc.Port, cfg.Db)
 
