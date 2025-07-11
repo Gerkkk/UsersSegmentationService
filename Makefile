@@ -6,3 +6,6 @@ gen:
 	protoc -I $(PROTO_DIR) $(PROTO_DIR)/segmentation/segmentationService.proto \
 		--go_out=$(OUT_DIR) --go_opt=paths=source_relative \
 		--go-grpc_out=$(OUT_DIR) --go-grpc_opt=paths=source_relative
+
+run-temp:
+	go run cmd/Segmentation/main.go --config=./configs/segmentation_config_local.yaml

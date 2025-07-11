@@ -1,1 +1,61 @@
 package main
+
+import (
+	"log/slog"
+	"main/internal/app"
+	"main/internal/config"
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+const (
+	envLocal = "local"
+	envProd  = "prod"
+	envDev   = "dev"
+)
+
+func main() {
+	cfg := config.MustLoadConfig()
+
+	log := setupLogger(cfg.Env)
+
+	log.Debug("KEK")
+	log.Info("LOL")
+
+	application := app.NewApp(log, cfg.Grpc.Port, cfg.Db)
+
+	go application.GrpcServer.MustRun()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+	sig := <-stop
+
+	log.Info("Stopping app with signal " + sig.String())
+
+	application.GrpcServer.Stop()
+
+	log.Info("gracefully stopped grpc server")
+}
+
+func setupLogger(env string) *slog.Logger {
+	var log *slog.Logger
+
+	switch env {
+	case envLocal:
+		log = slog.New(
+			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case envDev:
+		log = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case envProd:
+		log = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
+		)
+	}
+
+	return log
+}

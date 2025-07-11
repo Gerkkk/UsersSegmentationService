@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  shard1-db:
+    image: postgres:16
+    container_name: shard1-db
+    environment:
+      POSTGRES_DB: shard1
+      POSTGRES_USER: user1
+      POSTGRES_PASSWORD: pass1
+    ports:
+      - "5433:5432"
+    volumes:
+      - shard1_data:/var/lib/postgresql/data
+
+  shard2-db:
+    image: postgres:16
+    container_name: shard2-db
+    environment:
+      POSTGRES_DB: shard2
+      POSTGRES_USER: user2
+      POSTGRES_PASSWORD: pass2
+    ports:
+      - "5434:5432"
+    volumes:
+      - shard2_data:/var/lib/postgresql/data
+
+volumes:
+  shard1_data:
+  shard2_data:
