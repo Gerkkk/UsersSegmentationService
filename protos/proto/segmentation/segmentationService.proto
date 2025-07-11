@@ -2,7 +2,7 @@ syntax = "proto3";
 package segmentation.v1;
 
 //TODO: fill
-option go_package = "";
+option go_package = "segmentation.v1;segv1";
 
 service Segmentation {
   rpc CreateSegment(CreateSegmentRequest) returns (CreateSegmentResponse);
