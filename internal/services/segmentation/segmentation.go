@@ -6,8 +6,9 @@ import (
 )
 
 type Segmentation struct {
-	log  *slog.Logger
-	repo SegmentationRepository
+	log   *slog.Logger
+	repo  SegmentationRepository
+	cache SegmentationCache
 }
 
 type SegmentationRepository interface {
@@ -19,11 +20,18 @@ type SegmentationRepository interface {
 	DistributeSegment(id string, usersPercentage int) (string, error)
 }
 
-func NewSegmentation(log *slog.Logger, repo SegmentationRepository) *Segmentation {
-	return &Segmentation{log: log, repo: repo}
+type SegmentationCache interface {
+	SaveUserSegments(key models.User, val []models.Segment) error
+	TryGetUserSegments(key models.User) ([]models.Segment, error)
+	Invalidate() error
+}
+
+func NewSegmentation(log *slog.Logger, repo SegmentationRepository, cache SegmentationCache) *Segmentation {
+	return &Segmentation{log: log, repo: repo, cache: cache}
 }
 
 func (s *Segmentation) CreateSegment(id, description string) (string, error) {
+	s.cache.Invalidate()
 	s.repo.CreateSegment(id, description)
 	panic("service not implemented")
 }

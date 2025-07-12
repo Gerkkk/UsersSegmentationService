@@ -5,6 +5,7 @@ import (
 	grpcapp "main/internal/app/grpc"
 	"main/internal/config"
 	"main/internal/repository/postgres"
+	"main/internal/repository/redis"
 	"main/internal/services/segmentation"
 )
 
@@ -12,7 +13,7 @@ type App struct {
 	GrpcServer *grpcapp.App
 }
 
-func NewApp(log *slog.Logger, grpcPort int, dbConfig config.DbConfig) *App {
+func NewApp(log *slog.Logger, grpcPort int, dbConfig config.DbConfig, cacheConfig config.CacheConfig) *App {
 
 	shards := make([]string, 0)
 
@@ -26,7 +27,13 @@ func NewApp(log *slog.Logger, grpcPort int, dbConfig config.DbConfig) *App {
 		panic("failed to connect to database: " + err.Error())
 	}
 
-	segService := segmentation.NewSegmentation(log, repository)
+	segCache, err := redis.NewSegmentationCache(log, cacheConfig.Host, cacheConfig.Port, cacheConfig.Password, cacheConfig.MaxMemory, cacheConfig.MaxMemoryPolicy)
+
+	if err != nil {
+		panic("failed to connect to cache: " + err.Error())
+	}
+
+	segService := segmentation.NewSegmentation(log, repository, segCache)
 
 	grpcApp := grpcapp.NewApp(log, grpcPort, segService)
 

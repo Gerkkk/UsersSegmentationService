@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	Env  string     `yaml:"env" env-default:"local"`
-	Grpc GrpcConfig `yaml:"grpc"`
-	Db   DbConfig   `yaml:"db"`
+	Env   string      `yaml:"env" env-default:"local"`
+	Grpc  GrpcConfig  `yaml:"grpc"`
+	Db    DbConfig    `yaml:"db"`
+	Cache CacheConfig `yaml:"cache"`
 }
 
 type GrpcConfig struct {
@@ -21,6 +22,17 @@ type GrpcConfig struct {
 type DbConfig struct {
 	NumShards int           `yaml:"num_shards"`
 	Shards    []ShardConfig `yaml:"shards"`
+}
+
+type CacheConfig struct {
+	Host            string `yaml:"host"`
+	Port            string `yaml:"port"`
+	Db              string `yaml:"db"`
+	MaxMemory       string `yaml:"max_memory"`
+	MaxMemoryPolicy string `yaml:"max_memory_policy"`
+	UserSegmentsTtl string `yaml:"user_segments_ttl"`
+	PasswordEnv     string `yaml:"password_env"`
+	Password        string
 }
 
 type ShardConfig struct {
@@ -55,6 +67,14 @@ func MustLoadConfig() *Config {
 
 		cfg.Db.Shards[i].DSN = DSN
 	}
+
+	cachePwd := os.Getenv(cfg.Cache.PasswordEnv)
+
+	if cachePwd == "" {
+		panic("env variable cache password is not set")
+	}
+
+	cfg.Cache.Password = cachePwd
 
 	return &cfg
 }
