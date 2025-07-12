@@ -11,3 +11,6 @@ db:
       dsn_env: SHARD1_DSN
     - name: shard2
       dsn_env: SHARD2_DSN
+
+migrations_path: internal/migrations
+migrations_table: migrations

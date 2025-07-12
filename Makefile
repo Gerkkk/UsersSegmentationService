@@ -9,3 +9,6 @@ gen:
 
 run-temp:
 	go run cmd/Segmentation/main.go --config=./configs/segmentation_config_local.yaml
+
+run-migrator:
+	go run cmd/migrator/main.go --config=./configs/segmentation_config_local.yaml
