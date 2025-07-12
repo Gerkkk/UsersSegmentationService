@@ -1,0 +1,72 @@
+syntax = "proto3";
+package segmentation.v1;
+
+//TODO: fill
+option go_package = "segmentation.v1;segv1";
+
+service Segmentation {
+  rpc CreateSegment(CreateSegmentRequest) returns (CreateSegmentResponse);
+  rpc UpdateSegment(UpdateSegmentRequest) returns (UpdateSegmentResponse);
+  rpc DeleteSegment(DeleteSegmentRequest) returns (DeleteSegmentResponse);
+  rpc GetUserSegments(GetUserSegmentsRequest) returns (GetUserSegmentsResponse);
+  rpc GetSegmentInfo(GetSegmentInfoRequest) returns (GetSegmentInfoResponse);
+  rpc DistributeSegment(DistributeSegmentRequest) returns (DistributeSegmentResponse);
+}
+
+message CreateSegmentRequest {
+  string id = 1;
+  string description = 2;
+}
+
+message CreateSegmentResponse {
+  string id = 1;
+}
+
+message UpdateSegmentRequest {
+  string id = 1;
+  optional string new_description = 2;
+  optional string new_id = 3;
+}
+
+message UpdateSegmentResponse {
+  string id = 1;
+}
+
+message DeleteSegmentRequest {
+  string id = 1;
+}
+
+message DeleteSegmentResponse {
+  string id = 1;
+}
+
+message CategoryInfo {
+  string id = 1;
+}
+
+message GetUserSegmentsRequest {
+  string id = 1;
+}
+
+message GetUserSegmentsResponse {
+  repeated CategoryInfo categories = 1;
+}
+
+message GetSegmentInfoRequest {
+  string id = 1;
+}
+
+message GetSegmentInfoResponse {
+  string id = 1;
+  int64 users_num = 2;
+  string description = 3;
+}
+
+message DistributeSegmentRequest {
+  string id = 1;
+  string users_percentage = 2;
+}
+
+message DistributeSegmentResponse {
+  string id = 1;
+}
