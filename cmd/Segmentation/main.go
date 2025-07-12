@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/joho/godotenv"
 	"log/slog"
 	"main/internal/app"
@@ -26,9 +27,10 @@ func main() {
 
 	log := setupLogger(cfg.Env)
 
-	application := app.NewApp(log, cfg.Grpc.Port, cfg.Db, cfg.Cache)
+	application := app.NewApp(log, cfg.Grpc.Port, cfg.Db, cfg.Cache, cfg.Queue)
 
 	go application.GrpcServer.MustRun()
+	go application.KafkaConsumer.MustRun(context.Background())
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)

@@ -21,5 +21,13 @@ cache:
   user_segments_ttl: "2" #minutes
   password_env: "REDIS_PASSWORD"
 
+queue:
+  brokers:
+    - localhost:29092
+  topics:
+    - create-user
+    - delete-user
+  group: segmentation-group
+
 migrations_path: internal/migrations
 migrations_table: migrations

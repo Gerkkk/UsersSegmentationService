@@ -62,3 +62,11 @@ func (s *SegmentationStorage) GetSegmentInfo(id string) (models.SegmentInfo, err
 func (s *SegmentationStorage) DistributeSegment(id string, usersPercentage int) (string, error) {
 	panic("db not implemented yet")
 }
+
+func (s *SegmentationStorage) CreateUser(id string) (string, error) {
+	panic("db not implemented yet")
+}
+
+func (s *SegmentationStorage) DeleteUser(id string) (string, error) {
+	panic("db not implemented yet")
+}

@@ -12,6 +12,13 @@ type Config struct {
 	Grpc  GrpcConfig  `yaml:"grpc"`
 	Db    DbConfig    `yaml:"db"`
 	Cache CacheConfig `yaml:"cache"`
+	Queue QueueConfig `yaml:"queue"`
+}
+
+type QueueConfig struct {
+	Brokers []string `yaml:"brokers"`
+	Topics  []string `yaml:"topics"`
+	Group   string   `yaml:"group"`
 }
 
 type GrpcConfig struct {

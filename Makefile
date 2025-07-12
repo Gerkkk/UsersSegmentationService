@@ -12,3 +12,9 @@ run-temp:
 
 run-migrator:
 	go run cmd/migrator/main.go --config=./configs/segmentation_config_local.yaml
+
+run-infra:
+	docker-compose up -d
+
+stop-infra:
+	docker-compose down -v
