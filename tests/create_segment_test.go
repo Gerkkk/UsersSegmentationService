@@ -51,8 +51,7 @@ func TestAllUseCases(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, distrSeg.Id, segId)
 
-	var userId int64
-	userId = 1
+	userId := int64(1)
 	_, err = st.AuthClient.GetUserSegments(ctx, &segv1.GetUserSegmentsRequest{
 		Id: userId,
 	})
