@@ -26,13 +26,13 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
 
-#      - name: Cache Go modules
-#        uses: actions/cache@v3
-#        with:
-#          path: |
-#            ~/go/pkg/mod
-#            ~/.cache/golangci-lint
-#          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/golangci-lint
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
 #      - name: Run golangci-lint
 #        run: |
@@ -54,7 +54,8 @@ jobs:
         run: |
           go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3
-
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y build-essential
       - name: Generate protobuf code
         env:
           PATH: ${{ env.PATH }}:$(go env GOPATH)/bin
