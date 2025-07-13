@@ -1,8 +1,8 @@
 module main
 
-go 1.22.3
+go 1.23.0
 
-toolchain go1.22.3
+toolchain go1.23.8
 
 require (
 	github.com/golang-migrate/migrate/v4 v4.18.3
