@@ -9,7 +9,7 @@ on:
 jobs:
   golangci-lint:
     name: Linter
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
 
     steps:
@@ -46,8 +46,8 @@ jobs:
 #          sarif_file: golangci-lint-results.sarif
       - name: Install protoc
         run: |
-          apt-get update
-          apt-get install -y protobuf-compiler
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
           protoc --version
 
       - name: Install Go protoc plugins
@@ -58,8 +58,8 @@ jobs:
         env:
           PATH: ${{ env.PATH }}:$(go env GOPATH)/bin
         run: |
-          apt-get update
-          apt-get install -y build-essential
+          sudo apt-get update
+          sudo apt-get install -y build-essential
           make gen
 
       - name: Preparing service for testing
