@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -86,6 +87,8 @@ func (a *App) consumeTopic(ctx context.Context, topic string) {
 					a.log.Error("failed to read message",
 						slog.String("topic", topic),
 						slog.Any("error", err))
+					time.Sleep(time.Second * 2)
+					continue
 				}
 				return
 			}

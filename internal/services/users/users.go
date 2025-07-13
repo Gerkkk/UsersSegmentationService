@@ -2,28 +2,53 @@ package users
 
 import (
 	"log/slog"
+	"main/internal/domain/models"
+	apperrors "main/internal/errors"
 )
 
 type Users struct {
-	log  *slog.Logger
-	repo UsersRepository
+	log   *slog.Logger
+	repo  UsersRepository
+	cache SegmentationCache
 }
 
 type UsersRepository interface {
-	CreateUser(id string) (string, error)
-	DeleteUser(id string) (string, error)
+	CreateUser(user models.User) (int, error)
+	DeleteUser(id int) (int, error)
 }
 
-func NewUsers(log *slog.Logger, repo UsersRepository) *Users {
-	return &Users{log: log, repo: repo}
+type SegmentationCache interface {
+	SaveUserSegments(key int, val []models.Segment) error
+	TryGetUserSegments(key int) ([]models.Segment, error)
+	Invalidate() error
 }
 
-func (u *Users) CreateUser(id string) (string, error) {
-	u.repo.CreateUser(id)
-	panic("user service not implemented")
+func NewUsers(log *slog.Logger, repo UsersRepository, cache SegmentationCache) *Users {
+	return &Users{log: log, repo: repo, cache: cache}
 }
 
-func (u *Users) DeleteUser(id string) (string, error) {
-	u.repo.DeleteUser(id)
-	panic("user service not implemented")
+func (u *Users) CreateUser(user models.User) (int, error) {
+	id, err := u.repo.CreateUser(user)
+
+	if err != nil {
+		return -1, apperrors.Convert(u.log, err)
+	}
+
+	return id, nil
+}
+
+func (u *Users) DeleteUser(id int) (int, error) {
+	id, err := u.repo.DeleteUser(id)
+
+	if err != nil {
+		return -1, apperrors.Convert(u.log, err)
+	}
+
+	err = u.cache.Invalidate()
+
+	if err != nil {
+		return -1, apperrors.Convert(u.log, err)
+	}
+
+	return id, nil
 }

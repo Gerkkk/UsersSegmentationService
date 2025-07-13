@@ -45,7 +45,7 @@ message CategoryInfo {
 }
 
 message GetUserSegmentsRequest {
-  string id = 1;
+  int64 id = 1;
 }
 
 message GetUserSegmentsResponse {
