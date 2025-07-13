@@ -1,0 +1,65 @@
+name: Segmentation CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.22.3"
+
+      - name: Download dependencies
+        run: go mod tidy && go mod download
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler build-essential
+          protoc --version
+
+      - name: Install Go protoc plugins
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+
+      - name: Install docker-compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.18.1/docker-compose-$(uname -s)-$(uname -m)" \
+            -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose version
+
+      - name: Generate protobuf code
+        env:
+          PATH: ${{ env.PATH }}:${{ env.GOPATH }}/bin
+        run: make gen
+
+      - name: Start infra, migrate, app and run tests
+        run: |
+          set -e
+          make run-infra
+          echo "Waiting for infra to be healthy…"
+          sleep 20
+
+          echo "Running migrations…"
+          make run-migrator
+          echo "Migrations complete"
+
+          echo "Starting app in background…"
+          make run-local &
+          APP_PID=$!
+
+          trap "echo 'Stopping app…'; kill $APP_PID" EXIT
+          sleep 10
+
+          echo "Running tests…"
+          make run-tests

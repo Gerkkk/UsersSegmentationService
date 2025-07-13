@@ -1,0 +1,43 @@
+run:
+  timeout: 3m
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - govet
+    - errcheck
+    - staticcheck
+    - gosec
+    - goimports
+  disable:
+    - wsl
+    - typecheck
+
+linters-settings:
+  gosec:
+    excludes:
+      - "G104"
+
+with:
+  go-version: "1.22.3"
+issues:
+  exclude-rules:
+    - path: \_test.go
+      linters:
+        - govet
+        - errcheck
+        - staticcheck
+        - gosec
+        - goimports
+    - path: suite.go
+      linters:
+        - govet
+        - errcheck
+        - staticcheck
+        - gosec
+        - goimports
+        - gosimple
+    - path: \.go
+      linters:
+        - errcheck
+        - goimports
