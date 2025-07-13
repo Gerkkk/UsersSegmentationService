@@ -1,0 +1,33 @@
+env: "local"
+
+grpc:
+  port: 9090
+  timeout: 5s
+
+db:
+  num_shards: 2
+  shards:
+    - name: shard1
+      dsn_env: SHARD1_DSN
+    - name: shard2
+      dsn_env: SHARD2_DSN
+
+cache:
+  host: localhost
+  port: 6379
+  db: 0
+  max_memory: "512mb"
+  max_memory_policy: "allkeys-lru"
+  user_segments_ttl: "2" #minutes
+  password_env: "REDIS_PASSWORD"
+
+queue:
+  brokers:
+    - localhost:29092
+  topics:
+    - create-user
+    - delete-user
+  group: segmentation-group
+
+migrations_path: internal/migrations
+migrations_table: migrations
