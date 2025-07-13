@@ -49,6 +49,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
           protoc --version
+
+      - name: Install Go protoc plugins
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3
+
+      - name: Generate protobuf code
+        env:
+          PATH: ${{ env.PATH }}:$(go env GOPATH)/bin
+        run: make gen
+
       - name: Preparing service for testing
         run: |
           set -e
