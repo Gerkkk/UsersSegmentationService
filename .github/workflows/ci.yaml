@@ -7,70 +7,44 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  golangci-lint:
-    name: Linter
-    runs-on: ubuntu-22.04
-    timeout-minutes: 5
-
+  build-and-test:
+    runs-on: ubuntu-latest      # <- либо убираем sudo вместо этого
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: "1.22.3"
+
       - name: Download dependencies
         run: go mod tidy && go mod download
-      - name: Install golangci-lint
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
 
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/golangci-lint
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-
-#      - name: Run golangci-lint
-#        run: |
-#          golangci-lint run --timeout=3m --config=.golangci.yml
-#        env:
-#          GOFLAGS: -mod=mod
-
-#      - name: Upload lint results
-#        uses: github/codeql-action/upload-sarif@v2
-#        with:
-#          sarif_file: golangci-lint-results.sarif
-      - name: Install protoc
+      - name: Install system deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
+          sudo apt-get install -y protobuf-compiler build-essential
           protoc --version
 
       - name: Install Go protoc plugins
         run: |
           go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31
-          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+
       - name: Generate protobuf code
         env:
-          PATH: ${{ env.PATH }}:$(go env GOPATH)/bin
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential
-          make gen
+          PATH: ${{ env.PATH }}:${{ env.GOPATH }}/bin
+        run: make gen
 
-      - name: Preparing service for testing
+      - name: Spin up infra
         run: |
-          set -e
-          sleep 5
           make run-infra
           sleep 20
+
+      - name: Spin up app
+        run: |
           make run-local
           sleep 10
-      - name: Testing
-        run: |
-          set -e
-          make tests
+
+      - name: Run tests
+        run: make tests
