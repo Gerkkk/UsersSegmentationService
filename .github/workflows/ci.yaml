@@ -50,4 +50,4 @@ jobs:
           make run-local & APP_PID=$!
           trap "kill $APP_PID" EXIT
           sleep 10
-          make tests
+          make run-tests
