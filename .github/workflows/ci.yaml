@@ -43,15 +43,11 @@ jobs:
           PATH: ${{ env.PATH }}:${{ env.GOPATH }}/bin
         run: make gen
 
-      - name: Spin up infra
+      - name: Start app and run tests
         run: |
           make run-infra
           sleep 20
-
-      - name: Spin up app
-        run: |
-          make run-local
+          make run-local & APP_PID=$!
+          trap "kill $APP_PID" EXIT
           sleep 10
-
-      - name: Run tests
-        run: make tests
+          make tests
