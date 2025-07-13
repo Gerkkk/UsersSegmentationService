@@ -43,11 +43,23 @@ jobs:
           PATH: ${{ env.PATH }}:${{ env.GOPATH }}/bin
         run: make gen
 
-      - name: Start app and run tests
+      - name: Start infra, migrate, app and run tests
         run: |
+          set -e
           make run-infra
+          echo "Waiting for infra to be healthy…"
           sleep 20
-          make run-local & APP_PID=$!
-          trap "kill $APP_PID" EXIT
+
+          echo "Running migrations…"
+          make run-migrator
+          echo "Migrations complete"
+
+          echo "Starting app in background…"
+          make run-local &
+          APP_PID=$!
+
+          trap "echo 'Stopping app…'; kill $APP_PID" EXIT
           sleep 10
-          make run-tests
+
+          echo "Running tests…"
+          make tests
