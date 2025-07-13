@@ -2,16 +2,21 @@ package kafkahandler
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log/slog"
+	"main/internal/domain/events"
+	"main/internal/domain/models"
 
 	"github.com/segmentio/kafka-go"
 )
 
 type UserService interface {
-	CreateUser(id string) (string, error)
-	DeleteUser(id string) (string, error)
+	CreateUser(user models.User) (int, error)
+	DeleteUser(id int) (int, error)
 }
 
+// Handler Обрабатывает сообщения, которые получает от kafka consumer-а
 type Handler struct {
 	log     *slog.Logger
 	userSvc UserService
@@ -27,6 +32,11 @@ func New(
 	}
 }
 
+/*
+	HandleMessage - сортирует значения по методам-обработчикам в зависимости от топика.
+
+Если топик не поддерживается, возвращает ошибку
+*/
 func (h *Handler) HandleMessage(ctx context.Context, msg kafka.Message) error {
 	h.log.Debug("message received",
 		slog.String("topic", msg.Topic),
@@ -45,15 +55,35 @@ func (h *Handler) HandleMessage(ctx context.Context, msg kafka.Message) error {
 }
 
 func (h *Handler) handleUserCreate(ctx context.Context, data []byte) error {
-	h.userSvc.CreateUser("KEK")
-	//var event segmentation.Event
-	//if err := json.Unmarshal(data, &event); err != nil {
-	//	return fmt.Errorf("unmarshal segment event: %w", err)
-	//}
+	var event events.NewUserEvent
+
+	if err := json.Unmarshal(data, &event); err != nil {
+		h.log.Error("failed to parse user create message", slog.String("error", err.Error()))
+		return fmt.Errorf("unmarshal user create message: %w", err)
+	}
+
+	_, err := h.userSvc.CreateUser(models.User{Id: event.ID})
+	if err != nil {
+		h.log.Error("failed to create user", slog.String("error", err.Error()))
+		return fmt.Errorf("create user: %w", err)
+	}
+
 	return nil
 }
 
 func (h *Handler) handleUserDelete(ctx context.Context, data []byte) error {
-	h.userSvc.DeleteUser("KEK")
+	var event events.DeleteUserEvent
+
+	if err := json.Unmarshal(data, &event); err != nil {
+		h.log.Error("failed to parse user delete message", slog.String("error", err.Error()))
+		return fmt.Errorf("unmarshal user delete message: %w", err)
+	}
+
+	_, err := h.userSvc.DeleteUser(event.ID)
+	if err != nil {
+		h.log.Error("failed to delete user", slog.String("error", err.Error()))
+		return fmt.Errorf("delete user: %w", err)
+	}
+
 	return nil
 }

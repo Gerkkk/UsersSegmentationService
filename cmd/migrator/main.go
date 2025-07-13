@@ -14,11 +14,13 @@ import (
 	"github.com/spf13/viper"
 )
 
+// ShardConfig - структура для парсинга конфига одного шарда.
 type ShardConfig struct {
 	Name   string `mapstructure:"name"`
 	DSNEnv string `mapstructure:"dsn_env"`
 }
 
+// Config - структура для парсинга конфига мигратора
 type Config struct {
 	DB struct {
 		NumShards int           `mapstructure:"num_shards"`
@@ -28,6 +30,7 @@ type Config struct {
 	MigrationsTable string `mapstructure:"migrations_table"`
 }
 
+// loadConfig - функция загрузки конфига мигратора
 func loadConfig() (*Config, error) {
 	var cfgPath string
 

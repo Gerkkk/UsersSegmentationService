@@ -12,11 +12,13 @@ import (
 	"main/internal/services/users"
 )
 
+// App - Структура всего приложения, состоит из всех его компонентов
 type App struct {
 	GrpcServer    *grpcapp.App
 	KafkaConsumer *kafka.App
 }
 
+// NewApp - Конструктор App
 func NewApp(log *slog.Logger, grpcPort int, dbConfig config.DbConfig, cacheConfig config.CacheConfig, queueConfig config.QueueConfig) *App {
 
 	shards := make([]string, 0)
@@ -25,7 +27,7 @@ func NewApp(log *slog.Logger, grpcPort int, dbConfig config.DbConfig, cacheConfi
 		shards = append(shards, cfg.DSN)
 	}
 
-	repository, err := postgres.NewSegmentationStorage(dbConfig.NumShards, shards)
+	repository, err := postgres.NewSegmentationStorage(dbConfig.NumShards, shards, log)
 
 	if err != nil {
 		panic("failed to connect to database: " + err.Error())
@@ -41,7 +43,7 @@ func NewApp(log *slog.Logger, grpcPort int, dbConfig config.DbConfig, cacheConfi
 
 	grpcApp := grpcapp.NewApp(log, grpcPort, segService)
 
-	userService := users.NewUsers(log, repository)
+	userService := users.NewUsers(log, repository, segCache)
 
 	messageHandler := kafkahandler.New(log, userService)
 

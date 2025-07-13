@@ -3,10 +3,12 @@ package config
 import (
 	"flag"
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 	"os"
 	"time"
 )
 
+// Config - структура конфигов приложения
 type Config struct {
 	Env   string      `yaml:"env" env-default:"local"`
 	Grpc  GrpcConfig  `yaml:"grpc"`
@@ -53,6 +55,42 @@ func MustLoadConfig() *Config {
 
 	if path == "" {
 		panic("config path is empty")
+	}
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		panic("config path does not exist: " + path)
+	}
+
+	var cfg Config
+
+	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
+		panic("Error reading configs: " + err.Error())
+	}
+
+	for i := range cfg.Db.Shards {
+		DSN := os.Getenv(cfg.Db.Shards[i].DSNEnv)
+
+		if DSN == "" {
+			panic("env variable " + cfg.Db.Shards[i].DSNEnv + " is not set")
+		}
+
+		cfg.Db.Shards[i].DSN = DSN
+	}
+
+	cachePwd := os.Getenv(cfg.Cache.PasswordEnv)
+
+	if cachePwd == "" {
+		panic("env variable cache password is not set")
+	}
+
+	cfg.Cache.Password = cachePwd
+
+	return &cfg
+}
+
+func MustLoadByPath(path, envPath string) *Config {
+	if err := godotenv.Load(envPath); err != nil {
+		panic("failed to load env file: " + envPath + " → " + err.Error())
 	}
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {

@@ -13,6 +13,13 @@ services:
     volumes:
       - shard1_data:/var/lib/postgresql/data
     command: ["postgres", "-c", "max_prepared_transactions=10"]
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "user1", "-d", "shard1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      app-net:
 
   shard2-db:
     image: postgres:16
@@ -26,11 +33,20 @@ services:
     volumes:
       - shard2_data:/var/lib/postgresql/data
     command: ["postgres", "-c", "max_prepared_transactions=10"]
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "user2", "-d", "shard2" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      app-net:
 
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
+    networks:
+      app-net:
 
   zookeeper:
     image: bitnami/zookeeper:3.8
@@ -41,6 +57,7 @@ services:
       - ALLOW_ANONYMOUS_LOGIN=yes
     networks:
       - kafka-net
+      - app-net
 
   kafka:
     image: bitnami/kafka:3.3
@@ -50,8 +67,8 @@ services:
       - "29092:29092"
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:29092
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,EXTERNAL://:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://host.docker.internal:29092
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
@@ -60,6 +77,7 @@ services:
       - zookeeper
     networks:
       - kafka-net
+      - app-net
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -73,6 +91,7 @@ services:
       - kafka
     networks:
       - kafka-net
+      - app-net
 
 volumes:
   shard1_data:
@@ -80,4 +99,6 @@ volumes:
 
 networks:
   kafka-net:
+    driver: bridge
+  app-net:
     driver: bridge
