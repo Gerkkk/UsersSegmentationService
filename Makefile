@@ -7,7 +7,7 @@ gen:
 		--go_out=$(OUT_DIR) --go_opt=paths=source_relative \
 		--go-grpc_out=$(OUT_DIR) --go-grpc_opt=paths=source_relative
 
-run-temp:
+run-local:
 	go run cmd/Segmentation/main.go --config=./configs/segmentation_config_local.yaml
 
 run-migrator:
@@ -18,3 +18,6 @@ run-infra:
 
 stop-infra:
 	docker-compose down -v
+
+make run-docker:
+	docker-compose -f docker-compose.infra.yml -f docker-compose.app.yml up --build

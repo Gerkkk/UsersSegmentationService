@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  migrator:
+    build:
+      context: .
+      dockerfile: build/migrator.Dockerfile
+    depends_on:
+      shard1-db:
+        condition: service_healthy
+      shard2-db:
+        condition: service_healthy
+    command: ["/app/migrator", "--config=./configs/segmentation_config_docker.yaml"]
+    volumes:
+      - ./configs:/app/configs
+      - ./.env:/app/.env
+    networks:
+      app-net:
+
+  segmentation:
+    build:
+      context: .
+      dockerfile: build/server.Dockerfile
+    ports:
+      - "9090:9090"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    command: ["/app/server", "--config=./configs/segmentation_config_docker.yaml"]
+    volumes:
+      - ./configs:/app/configs
+      - ./.env:/app/.env
+    networks:
+      app-net:
+
+networks:
+  app-net:
+    driver: bridge
