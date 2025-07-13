@@ -62,4 +62,4 @@ jobs:
           sleep 10
 
           echo "Running tests…"
-          make tests
+          make run-tests
