@@ -12,11 +12,13 @@ import (
 	"main/internal/services/users"
 )
 
+// App - Структура всего приложения, состоит из всех его компонентов
 type App struct {
 	GrpcServer    *grpcapp.App
 	KafkaConsumer *kafka.App
 }
 
+// NewApp - Конструктор App
 func NewApp(log *slog.Logger, grpcPort int, dbConfig config.DbConfig, cacheConfig config.CacheConfig, queueConfig config.QueueConfig) *App {
 
 	shards := make([]string, 0)

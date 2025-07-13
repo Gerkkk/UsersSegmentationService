@@ -10,10 +10,12 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
+// MessageHandler - интерфейс обработчика сообщений кафки, который внедряется в кафка-потребитель
 type MessageHandler interface {
 	HandleMessage(ctx context.Context, msg kafka.Message) error
 }
 
+// App - структура Kafka consumer-а, который используется приложением. Группа и набор топиков задаются в конфигах.
 type App struct {
 	log          *slog.Logger
 	handler      MessageHandler
@@ -24,6 +26,7 @@ type App struct {
 	readers      []*kafka.Reader
 }
 
+// New - конструктор App
 func New(
 	log *slog.Logger,
 	handler MessageHandler,
@@ -40,7 +43,8 @@ func New(
 	}
 }
 
-func (a *App) MustRun(ctx context.Context) error {
+// MustRun - Запуск Kafka consumer-а. При ошибке паникует
+func (a *App) MustRun(ctx context.Context) {
 	const op = "kafkaapp.Run"
 	log := a.log.With(slog.String("op", op))
 
@@ -53,9 +57,10 @@ func (a *App) MustRun(ctx context.Context) error {
 	}
 
 	<-ctx.Done()
-	return a.Stop()
+	_ = a.Stop()
 }
 
+// consumeTopic - добавление топика для прослушивания consumer-ом
 func (a *App) consumeTopic(ctx context.Context, topic string) {
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: a.brokers,
@@ -97,6 +102,7 @@ func (a *App) consumeTopic(ctx context.Context, topic string) {
 	}
 }
 
+// processMessage - функция обработки сообщения consumer-ом. Передает сообщение в handler
 func (a *App) processMessage(ctx context.Context, m kafka.Message) {
 	if err := a.handler.HandleMessage(ctx, m); err != nil {
 		a.log.Error("message handling failed",
@@ -105,6 +111,7 @@ func (a *App) processMessage(ctx context.Context, m kafka.Message) {
 	}
 }
 
+// Stop - stop kafka consumer-а
 func (a *App) Stop() error {
 	const op = "kafkaapp.Stop"
 	log := a.log.With(slog.String("op", op))

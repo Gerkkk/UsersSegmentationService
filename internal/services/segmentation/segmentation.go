@@ -6,6 +6,7 @@ import (
 	apperrors "main/internal/errors"
 )
 
+// Segmentation - структура сервиса для управления сегментами
 type Segmentation struct {
 	log   *slog.Logger
 	repo  SegmentationRepository
@@ -31,6 +32,7 @@ func NewSegmentation(log *slog.Logger, repo SegmentationRepository, cache Segmen
 	return &Segmentation{log: log, repo: repo, cache: cache}
 }
 
+// CreateSegment - создать сегмент с заданной структурой
 func (s *Segmentation) CreateSegment(segment models.Segment) (string, error) {
 	id, err := s.repo.CreateSegment(segment)
 
@@ -42,6 +44,7 @@ func (s *Segmentation) CreateSegment(segment models.Segment) (string, error) {
 	return id, nil
 }
 
+// DeleteSegment - удалить сегмент по id
 func (s *Segmentation) DeleteSegment(id string) (string, error) {
 	id, err := s.repo.DeleteSegment(id)
 
@@ -59,6 +62,7 @@ func (s *Segmentation) DeleteSegment(id string) (string, error) {
 	return id, nil
 }
 
+// UpdateSegment - исправить поля сегмента с id на поля newSegment
 func (s *Segmentation) UpdateSegment(id string, newSegment models.Segment) (string, error) {
 	id, err := s.repo.UpdateSegment(id, newSegment)
 
@@ -76,6 +80,7 @@ func (s *Segmentation) UpdateSegment(id string, newSegment models.Segment) (stri
 	return id, nil
 }
 
+// GetUserSegments - получить сегменты по id пользователя
 func (s *Segmentation) GetUserSegments(id int) ([]models.Segment, error) {
 	cachedSegments, err := s.cache.TryGetUserSegments(id)
 
@@ -101,6 +106,7 @@ func (s *Segmentation) GetUserSegments(id int) ([]models.Segment, error) {
 	return segments, nil
 }
 
+// GetSegmentInfo - Получить статистику сегмента по id
 func (s *Segmentation) GetSegmentInfo(id string) (models.SegmentInfo, error) {
 	res, err := s.repo.GetSegmentInfo(id)
 
@@ -112,6 +118,7 @@ func (s *Segmentation) GetSegmentInfo(id string) (models.SegmentInfo, error) {
 	return res, nil
 }
 
+// DistributeSegment - рспространить сегмент id на заданный процент пользователей, если он еще не распространен
 func (s *Segmentation) DistributeSegment(id string, usersPercentage int) (string, error) {
 	id, err := s.repo.DistributeSegment(id, usersPercentage)
 

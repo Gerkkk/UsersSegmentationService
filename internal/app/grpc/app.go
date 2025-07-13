@@ -8,12 +8,14 @@ import (
 	"net"
 )
 
+// App - структура Grpc сервера, который использует приложение
 type App struct {
 	log        *slog.Logger
 	grpcServer *grpc.Server
 	port       int
 }
 
+// NewApp - конструктор App
 func NewApp(log *slog.Logger, port int, segmentationService segmentationrpc.Segmentation) *App {
 	grpcServer := grpc.NewServer()
 
@@ -26,7 +28,8 @@ func NewApp(log *slog.Logger, port int, segmentationService segmentationrpc.Segm
 	}
 }
 
-func (a *App) MustRun() error {
+// MustRun - Запуск Grpc сервера. При ошибке паникует
+func (a *App) MustRun() {
 	const op = "grpcapp.Run"
 	log := a.log.With(
 		slog.String("op", op),
@@ -38,18 +41,17 @@ func (a *App) MustRun() error {
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", a.port))
 
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		panic("Grpc server failed to listen: " + err.Error())
 	}
 
 	log.Info("GRPC server listening on", slog.String("address", l.Addr().String()))
 
 	if err := a.grpcServer.Serve(l); err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		panic("Grpc server failed to serve: " + err.Error())
 	}
-
-	return nil
 }
 
+// Stop - Graceful stop grpc-сервера
 func (a *App) Stop() error {
 	const op = "grpcapp.Stop"
 

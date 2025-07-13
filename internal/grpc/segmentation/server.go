@@ -10,6 +10,7 @@ import (
 	"strconv"
 )
 
+// ServerApi - Занимается валидацией входных данных запросов и отправляет ответы пользователю
 type ServerApi struct {
 	segv1.UnimplementedSegmentationServer
 	segServ Segmentation
@@ -94,6 +95,10 @@ func (s *ServerApi) GetSegmentInfo(ctx context.Context, req *segv1.GetSegmentInf
 func (s *ServerApi) DistributeSegment(ctx context.Context, req *segv1.DistributeSegmentRequest) (*segv1.DistributeSegmentResponse, error) {
 	i, err := strconv.ParseInt(req.GetUsersPercentage(), 10, 64)
 	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid users percentage")
+	}
+
+	if i <= 0 || i > 100 {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid users percentage")
 	}
 

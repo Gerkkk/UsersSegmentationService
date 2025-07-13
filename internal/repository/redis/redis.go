@@ -16,11 +16,13 @@ const (
 	ttl       = 5 * time.Minute
 )
 
+// SegmentationCache - структура, управляющая кэшем Redis.
 type SegmentationCache struct {
 	log    *slog.Logger
 	client *redis.Client
 }
 
+// NewSegmentationCache - конструктор SegmentationCache
 func NewSegmentationCache(log *slog.Logger, host, port, password, maxMemory, maxMemPolicy string) (*SegmentationCache, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", host, port),

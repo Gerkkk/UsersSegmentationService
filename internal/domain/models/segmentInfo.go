@@ -1,5 +1,6 @@
 package models
 
+// SegmentInfo - Структура для статистики сегмента, которая получается при запросе GetSegmentInfo
 type SegmentInfo struct {
 	Id          string `json:"id"`
 	Description string `json:"description"`

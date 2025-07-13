@@ -44,6 +44,7 @@ func main() {
 	log.Info("gracefully stopped grpc server")
 }
 
+// setupLogger - Настраивает логгер slog, в зависимости от окружения
 func setupLogger(env string) *slog.Logger {
 	var log *slog.Logger
 

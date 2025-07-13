@@ -14,6 +14,7 @@ import (
 	"sync"
 )
 
+// SegmentationStorage - структура, которая управляет шардированной бд
 type SegmentationStorage struct {
 	shardsNum int
 	dbShards  map[int]*sql.DB
@@ -47,6 +48,7 @@ func NewSegmentationStorage(numShards int, dsns []string, log *slog.Logger) (*Se
 	return segStorage, nil
 }
 
+// CreateSegment - создать сегмент во всех шардах
 func (s *SegmentationStorage) CreateSegment(segment models.Segment) (string, error) {
 	ctx := context.Background()
 	txID := "tx_" + uuid.New().String()
@@ -98,7 +100,11 @@ func (s *SegmentationStorage) CreateSegment(segment models.Segment) (string, err
 	return segment.Id, nil
 }
 
-// Если где-то существует сегмент - удаляем
+/*
+	DeleteSegment - удалить из шардов все записи о сегменте с таким id.
+
+Если хотя бы где-то существует сегмент - удаляем, иначе вернем ошибку
+*/
 func (s *SegmentationStorage) DeleteSegment(id string) (string, error) {
 	ctx := context.Background()
 	txID := "tx_" + uuid.New().String()
@@ -157,6 +163,11 @@ func (s *SegmentationStorage) DeleteSegment(id string) (string, error) {
 	return id, nil
 }
 
+/*
+	UpdateSegment - обновить записи о сегменте с таким id во всех шардах.
+
+Если хотя бы где-то существует сегмент - обновляем, иначе вернем ошибку
+*/
 func (s *SegmentationStorage) UpdateSegment(id string, newSegment models.Segment) (string, error) {
 	ctx := context.Background()
 	txID := "tx_" + uuid.New().String()
@@ -217,6 +228,8 @@ func (s *SegmentationStorage) UpdateSegment(id string, newSegment models.Segment
 	return id, nil
 }
 
+/* GetUserSegments - Получить данные о сегментах, в которых есть заданный пользователь
+ */
 func (s *SegmentationStorage) GetUserSegments(id int) ([]models.Segment, error) {
 	ctx := context.Background()
 	shardNum := id % s.shardsNum
@@ -259,7 +272,11 @@ func (s *SegmentationStorage) GetUserSegments(id int) ([]models.Segment, error) 
 	return segments, nil
 }
 
-// Ошибка только если нигде не нашли сегмент. Иначе информацию выведем
+/*
+	GetUserSegments - Получить статистику сегмента по id.
+
+Ошибка только если нигде не нашли сегмент. Иначе информацию выведем
+*/
 func (s *SegmentationStorage) GetSegmentInfo(id string) (models.SegmentInfo, error) {
 	type result struct {
 		info models.SegmentInfo
@@ -337,6 +354,8 @@ func (s *SegmentationStorage) GetSegmentInfo(id string) (models.SegmentInfo, err
 	return cumResult, nil
 }
 
+/* DistributeSegment - распространить сегмент на пользователей, если только среди новых пользователей нет уже добавленных записей
+ */
 func (s *SegmentationStorage) DistributeSegment(id string, usersPercentage int) (string, error) {
 	ctx := context.Background()
 	txID := "tx_" + uuid.New().String()
@@ -384,7 +403,7 @@ func (s *SegmentationStorage) DistributeSegment(id string, usersPercentage int) 
 			SELECT user_id, segment_id FROM new_vals;
 		`
 
-		_, err = conn.ExecContext(ctx, query, id, percentage, usersPercentage)
+		_, err = conn.ExecContext(ctx, query, id, percentage, upperPercentage)
 		if err != nil {
 			var pqErr *pq.Error
 			if errors.As(err, &pqErr) && pqErr.Code == "23505" {
@@ -414,6 +433,9 @@ func (s *SegmentationStorage) DistributeSegment(id string, usersPercentage int) 
 	return id, nil
 }
 
+/*
+CreateUser - создать пользователя в нужном шарде
+*/
 func (s *SegmentationStorage) CreateUser(user models.User) (int, error) {
 	ctx := context.Background()
 	shardNum := user.Id % s.shardsNum
@@ -442,6 +464,9 @@ func (s *SegmentationStorage) CreateUser(user models.User) (int, error) {
 	return user.Id, nil
 }
 
+/*
+DeleteUser - удалить пользователя в нужном шарде
+*/
 func (s *SegmentationStorage) DeleteUser(id int) (int, error) {
 	ctx := context.Background()
 	shardNum := id % s.shardsNum
@@ -475,6 +500,7 @@ func (s *SegmentationStorage) DeleteUser(id int) (int, error) {
 	return id, nil
 }
 
+// rollbackAll - пробуем роллбэкнуть транзакции во всех шардах
 func (s *SegmentationStorage) rollbackAll(txID string, preparedShards map[int]bool) {
 	for shardID, prepared := range preparedShards {
 		if !prepared {
@@ -489,6 +515,7 @@ func (s *SegmentationStorage) rollbackAll(txID string, preparedShards map[int]bo
 	}
 }
 
+// commitAll - пробуем закоммитить подготовленные транзакции во всех шардах. Может и не получиться. Но это маловероятно.
 func (s *SegmentationStorage) commitAll(txID string, preparedShards map[int]bool) error {
 	var firstErr error
 

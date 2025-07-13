@@ -16,6 +16,7 @@ type UserService interface {
 	DeleteUser(id int) (int, error)
 }
 
+// Handler Обрабатывает сообщения, которые получает от kafka consumer-а
 type Handler struct {
 	log     *slog.Logger
 	userSvc UserService
@@ -31,6 +32,11 @@ func New(
 	}
 }
 
+/*
+	HandleMessage - сортирует значения по методам-обработчикам в зависимости от топика.
+
+Если топик не поддерживается, возвращает ошибку
+*/
 func (h *Handler) HandleMessage(ctx context.Context, msg kafka.Message) error {
 	h.log.Debug("message received",
 		slog.String("topic", msg.Topic),

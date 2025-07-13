@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Config - структура конфигов приложения
 type Config struct {
 	Env   string      `yaml:"env" env-default:"local"`
 	Grpc  GrpcConfig  `yaml:"grpc"`

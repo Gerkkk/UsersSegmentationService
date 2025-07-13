@@ -6,6 +6,7 @@ import (
 	apperrors "main/internal/errors"
 )
 
+// Users - структура сервиса для управления пользователями
 type Users struct {
 	log   *slog.Logger
 	repo  UsersRepository
@@ -27,6 +28,7 @@ func NewUsers(log *slog.Logger, repo UsersRepository, cache SegmentationCache) *
 	return &Users{log: log, repo: repo, cache: cache}
 }
 
+// CreateUser - Создание пользователя с заданной структорой
 func (u *Users) CreateUser(user models.User) (int, error) {
 	id, err := u.repo.CreateUser(user)
 
@@ -37,6 +39,7 @@ func (u *Users) CreateUser(user models.User) (int, error) {
 	return id, nil
 }
 
+// DeleteUser - удаление пользователя по id
 func (u *Users) DeleteUser(id int) (int, error) {
 	id, err := u.repo.DeleteUser(id)
 

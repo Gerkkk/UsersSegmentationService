@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Публичные ошибки, которые будут показываться пользователю в ответе сервера
 var (
 	ErrSegmentAlreadyExists = errors.New("segment already exists")
 	ErrSegmentNotFound      = errors.New("segment not found")
@@ -15,12 +16,9 @@ var (
 	ErrUserNotFound         = errors.New("user not found")
 	ErrShardUnavailable     = errors.New("shard unavailable")
 	ErrSegmentDistributed   = errors.New("segment distributed")
-
-	ErrShardRollbackFailed = errors.New("shard rollback failed")
-	ErrShardCommitFailed   = errors.New("shard commit failed")
-	ErrShardPrepareFailed  = errors.New("shard prepare failed")
 )
 
+// errorToCode - Отображение публичных ошибок в коды ответа Grpc
 var errorToCode = map[error]codes.Code{
 	ErrSegmentAlreadyExists: codes.AlreadyExists,
 	ErrShardUnavailable:     codes.Unavailable,
@@ -30,17 +28,23 @@ var errorToCode = map[error]codes.Code{
 	ErrSegmentDistributed:   codes.AlreadyExists,
 }
 
+// isPublic - функция, проверяющая, является ли ошибка публичной
 func isPublic(err error) bool {
 	_, ok := errorToCode[err]
 	return ok
 }
 
+/*
+	Convert - функция, конвертирующая ошибку в ее окончательный вид для пользователя, и логирующая исходный вид
+
+В случае непубличной ошибки вернет codes.Internal с сообщением internal server error
+*/
 func Convert(log *slog.Logger, err error) error {
 	if err == nil {
 		return nil
 	}
 
-	log.Error("ERROR: %v", err)
+	log.Error("ERROR", slog.String("ERROR", err.Error()))
 
 	if isPublic(err) {
 		return status.Error(errorToCode[err], err.Error())
