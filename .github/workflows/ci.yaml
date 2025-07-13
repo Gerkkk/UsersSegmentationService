@@ -41,3 +41,16 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: golangci-lint-results.sarif
+      - name: Preparing service for testing
+        run: |
+          set -e
+          make gen
+          sleep 5
+          make run-infra
+          sleep 20
+          make run-local
+          sleep 10
+      - name: Testing
+        run: |
+          set -e
+          make tests

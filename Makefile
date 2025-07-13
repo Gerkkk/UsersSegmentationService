@@ -19,5 +19,8 @@ run-infra:
 stop-infra:
 	docker-compose down -v
 
-make run-docker:
+run-docker:
 	docker-compose -f docker-compose.infra.yml -f docker-compose.app.yml up --build
+
+run-tests:
+	go test ./...
