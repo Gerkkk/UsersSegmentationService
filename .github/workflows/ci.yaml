@@ -46,8 +46,8 @@ jobs:
 #          sarif_file: golangci-lint-results.sarif
       - name: Install protoc
         run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
+          apt-get update
+          apt-get install -y protobuf-compiler
           protoc --version
 
       - name: Install Go protoc plugins
@@ -58,8 +58,8 @@ jobs:
         env:
           PATH: ${{ env.PATH }}:$(go env GOPATH)/bin
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential
+          apt-get update
+          apt-get install -y build-essential
           make gen
 
       - name: Preparing service for testing
