@@ -31,6 +31,13 @@ jobs:
           go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 
+      - name: Install docker-compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.18.1/docker-compose-$(uname -s)-$(uname -m)" \
+            -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose version
+
       - name: Generate protobuf code
         env:
           PATH: ${{ env.PATH }}:${{ env.GOPATH }}/bin
